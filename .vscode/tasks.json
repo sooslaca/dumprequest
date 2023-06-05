@@ -1,0 +1,14 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+        {
+            "label": "Build and upload",
+            "type": "shell",
+            "command": "mkdir -p build && CGO_ENABLED=0 go build -o build/dumpserver ./cmd/server && scp build/dumpserver dstserver:~",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        }
+	]
+}
