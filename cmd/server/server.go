@@ -128,6 +128,12 @@ func StartServer(logger *log.Logger, router *http.ServeMux) {
 	w := s.logger.Writer()
 	defer w.Close()
 
+	/*mdlw := middleware.New(middleware.Config{
+		Recorder: metrics.NewRecorder(metrics.Config{}),
+	})
+
+	h := std.Handler("", mdlw, s.router)*/
+
 	httpsServer := &http.Server{
 		ReadTimeout:       5 * time.Second,
 		WriteTimeout:      10 * time.Second,
