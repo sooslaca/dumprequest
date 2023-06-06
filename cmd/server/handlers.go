@@ -213,6 +213,7 @@ func serveHtml(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	fmt.Fprintf(w, "Remote: %s\n", r.RemoteAddr)
 	fmt.Fprintf(w, "Host: %s\n", r.Host)
 	fmt.Fprintf(w, "User-Agent: %s\n", r.UserAgent())
 	fmt.Fprintf(w, "Proto: %s\n", r.Proto)
