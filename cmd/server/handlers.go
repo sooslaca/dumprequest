@@ -19,20 +19,37 @@ import (
 //go:embed web
 var webContent embed.FS
 
-var staticServer http.Handler
+//go:embed web-logs
+var webLogsContent embed.FS
+
+var staticServerWeb http.Handler
+var staticServerLogs http.Handler
 var indexTemplate *template.Template
+var logsTemplate *template.Template
 
 func init() {
 	fsWeb, err := fs.Sub(webContent, "web")
 	if err != nil {
 		panic(err)
 	}
-	staticServer = http.FileServer(http.FS(fsWeb))
+	staticServerWeb = http.FileServer(http.FS(fsWeb))
 
 	indexTemplate, err = template.ParseFS(fsWeb, "index.html")
 	if err != nil {
 		panic(err)
 	}
+
+	fsLogs, err := fs.Sub(webLogsContent, "web-logs")
+	if err != nil {
+		panic(err)
+	}
+	staticServerLogs = http.FileServer(http.FS(fsLogs))
+
+	logsTemplate, err = template.ParseFS(fsLogs, "index.html")
+	if err != nil {
+		panic(err)
+	}
+
 }
 
 func serveMainPage(w http.ResponseWriter, r *http.Request) {
@@ -65,7 +82,40 @@ func serveMainPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	staticServer.ServeHTTP(w, r)
+	staticServerWeb.ServeHTTP(w, r)
+}
+
+func serveLogsPage(w http.ResponseWriter, r *http.Request) {
+	//make sure the url path starts with /
+	upath := r.URL.Path
+	if !strings.HasPrefix(upath, "/") {
+		upath = "/" + upath
+		r.URL.Path = upath
+	}
+	upath = path.Clean(upath)
+
+	if upath != "/" {
+		f, err := webLogsContent.Open("web-logs" + upath)
+		if err != nil {
+			fmt.Printf("%v", err)
+			if os.IsNotExist(err) {
+				http.Error(w, "404 - not found ¯\\_(ツ)_/¯", http.StatusNotFound)
+				return
+			}
+		}
+		if err == nil { // check this otherwise panic can happen if above commented out
+			f.Close()
+		}
+	}
+
+	if upath == "/" || upath == "/index.html" {
+		logsTemplate.Execute(w, struct {
+			Name string
+		}{Name: strings.Replace(namesgenerator.GetRandomName(0), "_", "-", -1)})
+		return
+	}
+
+	staticServerLogs.ServeHTTP(w, r)
 }
 
 func serveHtml(w http.ResponseWriter, r *http.Request) {
@@ -76,15 +126,17 @@ func serveHtml(w http.ResponseWriter, r *http.Request) {
 		helloInfo = getCHI(conn.RemoteAddr().String())
 	}
 
-	if helloInfo != nil {
-		if common.SliceContains(indexDomains, helloInfo.ServerName) {
-			serveMainPage(w, r)
-			return
-		}
+	serverName := r.Host
+	if serverName == "" {
+		serverName = helloInfo.ServerName
 	}
 
-	if common.SliceContains(indexDomains, r.Host) {
+	if common.SliceContains(indexDomains, serverName) {
 		serveMainPage(w, r)
+		return
+	}
+	if strings.HasPrefix(serverName, "logs-") {
+		serveLogsPage(w, r)
 		return
 	}
 
