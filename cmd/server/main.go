@@ -29,6 +29,7 @@ func main() {
 
 	router := http.NewServeMux()
 	router.HandleFunc("/", serveHtml)
+	//router.Handle("/metrics", promhttp.Handler())
 
 	fsWeb, err := fs.Sub(webContent, "web")
 	if err != nil {
