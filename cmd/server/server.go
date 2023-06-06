@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"sync"
 	"time"
 
 	systemlog "log"
@@ -39,10 +40,15 @@ type Server struct {
 	router *http.ServeMux
 }
 
-var HI = make(map[string]*tls.ClientHelloInfo)
+var (
+	HI      = make(map[string]*tls.ClientHelloInfo)
+	HIMutex = sync.RWMutex{}
+)
 
 func saveCHI(RemoteAddr string, helloInfo *tls.ClientHelloInfo) {
+	HIMutex.Lock()
 	HI[RemoteAddr] = helloInfo
+	HIMutex.Unlock()
 }
 
 func getCHI(RemoteAddr string) *tls.ClientHelloInfo {
@@ -50,7 +56,9 @@ func getCHI(RemoteAddr string) *tls.ClientHelloInfo {
 }
 
 func delCHI(RemoteAddr string) {
+	HIMutex.Lock()
 	delete(HI, RemoteAddr)
+	HIMutex.Unlock()
 }
 
 func tlsConfig() *tls.Config {
