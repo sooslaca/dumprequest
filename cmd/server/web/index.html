@@ -59,11 +59,19 @@
     Open <i>logs-&lt;subdomain&gt;.dumprequest.com</i> to view logs.<br/>
     Use <i>&lt;subdomain&gt;.dumprequest.com</i> for making a request.<br/><br/>
     A generated random domain to test with:<br/>
-    For viewing the logs: <a href="https://logs-{{ .Name }}.dumprequest.com" target="_blank">https://logs-{{ .Name }}.dumprequest.com</a><br/>
+    To view logs: <a href="https://logs-{{ .Name }}.dumprequest.com" target="_blank">https://logs-{{ .Name }}.dumprequest.com</a><br/>
     Send your request to: <a href="https://{{ .Name }}.dumprequest.com" target="_blank">https://{{ .Name }}.dumprequest.com</a><br/>
+    <h2>Motivation</h2>
+    Multiple times I needed to evaluate different proxy or firewall products which in conjunction with SSL inspection may modify request content.
+    I never found a good way of viewing the request which is arriving from the client other than setup a webserver and check logs.
+    Hence, I created this webpage to simplify my and hopefully other people's life who has been tasked with a similar activity.
+    <h2>Source code</h2>
+    Source code can be found at: <a href="https://github.com/sooslaca/dumprequest/" target="_blank">https://github.com/sooslaca/dumprequest/</a>.<br/>
+    Pull requests are welcome. Open and issue if you need to contact me.
+    <h2>Support the project</h2>
+    <a href="https://www.paypal.com/paypalme/sooslaca" target="_blank">https://www.paypal.com/paypalme/sooslaca</a>
   </div>
   <script>
     function makeid(r){let n="",o="abcdefghijklmnopqrstuvwxyz0123456789",t=o.length,e=0;for(;e<r;)n+=o.charAt(Math.floor(Math.random()*t)),e+=1;return n}
-    console.log(makeid(10));
   </script>
 </body>
