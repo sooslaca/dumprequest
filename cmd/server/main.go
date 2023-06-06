@@ -19,11 +19,11 @@ func main() {
 	StartServer(logger, router)
 }
 
-type output struct {
+/*type output struct {
 	SupportedSuites []string `json:"supported_suites"`
 	SupportedCurves []string `json:"supported_curves"`
 	SupportedPoints []string `json:"supported_points"`
-}
+}*/
 
 /*func xgetConfigForClientHook(helloInfo *tls.ClientHelloInfo) (*tls.Config, error) {
 return nil, nil

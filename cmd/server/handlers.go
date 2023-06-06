@@ -155,8 +155,8 @@ func serveHtml(w http.ResponseWriter, r *http.Request) {
 				fmt.Fprintf(w, "Client supported TLS versions:\n")
 				for _, version := range helloInfo.SupportedVersions {
 					switch version {
-					case tls.VersionSSL30:
-						fmt.Fprintf(w, "SSL3.0")
+					//case tls.VersionSSL30:
+					//	fmt.Fprintf(w, "SSL3.0")
 					case tls.VersionTLS10:
 						fmt.Fprintf(w, "1.0")
 					case tls.VersionTLS11:
