@@ -35,6 +35,16 @@ func GetConn(r *http.Request) net.Conn {
 	return r.Context().Value(ConnContextKey).(net.Conn)
 }
 
+type StatusRecorder struct {
+	http.ResponseWriter
+	Status int
+}
+
+func (r *StatusRecorder) WriteHeader(status int) {
+	r.Status = status
+	r.ResponseWriter.WriteHeader(status)
+}
+
 type Server struct {
 	logger *log.Logger
 	router *http.ServeMux
@@ -237,6 +247,10 @@ func getConfigForClientHook(helloInfo *tls.ClientHelloInfo) (*tls.Config, error)
 func logging(logger *log.Logger) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			recorder := &StatusRecorder{
+				ResponseWriter: w,
+				Status:         200,
+			}
 			defer func() {
 				requestID, ok := r.Context().Value(requestIDKey).(string)
 				if !ok {
@@ -244,9 +258,9 @@ func logging(logger *log.Logger) func(http.Handler) http.Handler {
 				}
 				logger.WithFields(log.Fields{
 					"request_id": requestID,
-				}).Println(r.Host, r.Method, r.URL.Path, r.RemoteAddr, r.UserAgent())
+				}).Println(recorder.Status, r.Host, r.Method, r.URL.Path, r.RemoteAddr, r.UserAgent())
 			}()
-			next.ServeHTTP(w, r)
+			next.ServeHTTP(recorder, r)
 		})
 	}
 }

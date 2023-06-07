@@ -1,77 +1,68 @@
-<!DOCTYPE html>
-<!--[if lt IE 7]>      <html lang="en" class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
-<!--[if IE 7]>         <html lang="en" class="no-js lt-ie9 lt-ie8"> <![endif]-->
-<!--[if IE 8]>         <html lang="en" class="no-js lt-ie9"> <![endif]-->
-<!--[if gt IE 8]><!--> <html lang="en" class="no-js" itemscope itemtype="http://schema.org/book" prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb# website: http://ogp.me/ns/website#"> <!--<![endif]-->
+<html>
 <head>
-<title>DumpRequest</title>
-<meta charset="utf-8">
-<meta http-equiv="X-UA-Compatible" content="IE=edge">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="keywords" content="dump, http, https, request, helper">
-<meta name="description" content="Dump the http request that has been sent to the server.">
-<meta name="language" content="en">
-<meta name="robots" content="index,follow">
-<meta name="news_keywords" content="dump, http, request">
-<link rel="canonical" href="https://dumprequest.com">
-<link rel="index" title="DumpRequest" href="https://dumprequest.com">
-<link rel="author" type="text/html" href="https://github.com/sooslaca">
-<link rel="me" type="text/html" href="https://github.com/sooslaca">
-<meta property="og:title" content="DumpRequest">
-<meta property="og:type" content="website">
-<meta property="og:url" content="https://dumprequest.com/">
-<meta property="og:image" content="https://dumprequest.com/inspect.png">
-<meta property="og:image:type" content="image/png">
-<meta property="og:image:width" content="256">
-<meta property="og:image:height" content="256">
-<meta property="og:image:alt" content="DumpRequest logo">
-<meta property="og:description" content="Dump the http request that has been sent to the server.">
-<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-<link rel="manifest" href="/site.webmanifest">
-<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
-<meta name="msapplication-TileColor" content="#da532c">
-<meta name="theme-color" content="#ffffff">
-<meta itemprop="name" content="DumpRequest">
-<meta itemprop="description" content="Dump the http request that has been sent to the server.">
-<meta itemprop="image" content="https://dumprequest.com/inspect.png">
-<style>
-    /*! normalize.css v8.0.1 | MIT License | github.com/necolas/normalize.css */button,hr,input{overflow:visible}progress,sub,sup{vertical-align:baseline}[type=checkbox],[type=radio],legend{box-sizing:border-box;padding:0}html{line-height:1.15;-webkit-text-size-adjust:100%}body{margin:0}details,main{display:block}h1{font-size:2em;margin:.67em 0}hr{box-sizing:content-box;height:0}code,kbd,pre,samp{font-family:monospace,monospace;font-size:1em}a{background-color:transparent}abbr[title]{border-bottom:none;text-decoration:underline;text-decoration:underline dotted}b,strong{font-weight:bolder}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative}sub{bottom:-.25em}sup{top:-.5em}img{border-style:none}button,input,optgroup,select,textarea{font-family:inherit;font-size:100%;line-height:1.15;margin:0}button,select{text-transform:none}[type=button],[type=reset],[type=submit],button{-webkit-appearance:button;appearance:button;}[type=button]::-moz-focus-inner,[type=reset]::-moz-focus-inner,[type=submit]::-moz-focus-inner,button::-moz-focus-inner{border-style:none;padding:0}[type=button]:-moz-focusring,[type=reset]:-moz-focusring,[type=submit]:-moz-focusring,button:-moz-focusring{outline:ButtonText dotted 1px}fieldset{padding:.35em .75em .625em}legend{color:inherit;display:table;max-width:100%;white-space:normal}textarea{overflow:auto}[type=number]::-webkit-inner-spin-button,[type=number]::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;appearance:textfield;outline-offset:-2px}[type=search]::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}[hidden],template{display:none}
-    html { background: #fafafa }
-    body { color: #333;font-family:Arial, Helvetica, sans-serif;font-size:12pt;line-height:1.5em;width:95%;max-width:50em;margin:10px auto;
-      padding:0em .25em .25em .25em }
-    header h1 { text-align: center;font-size:4em;line-height: 0.75em;margin:.25em 0 .25em 0;padding:0;color:#041d8d;font-family:'Courier New', Courier, monospace;font-variant:small-caps;font-weight:normal }
-    div[role=main] { padding: 1em 1em 1em 1em;background:#fff;border:1px solid #b3b3b3;border-radius:4px;margin:0 auto;box-shadow:0 1px 3px #a7a7a7,inset 0 1px 0 #fff }
-    div[role=main] h1 { font-size: 2em;color:#333;line-height:1em }
-    div[role=main] h2 { font-size: 1.5em;line-height:1em;border-bottom:1px solid silver;padding-bottom:5px }
-    div[role=main] h3 { font-size: 1.2em }
-    a, a:visited, a:hover, a:active { color: #00f; }
-</style>
+    <script type="text/javascript">
+
+    var myWebSocket;
+
+
+    function connectToWS() {
+        var endpoint = document.getElementById("endpoint").value;
+        if (myWebSocket !== undefined) {
+            myWebSocket.close()
+        }
+
+        myWebSocket = new WebSocket(endpoint);
+
+        myWebSocket.onmessage = function(event) {
+            var leng;
+            if (event.data.size === undefined) {
+                leng = event.data.length
+            } else {
+                leng = event.data.size
+            }
+            console.log("onmessage. size: " + leng + ", content: " + event.data);
+        }
+
+        myWebSocket.onopen = function(evt) {
+            console.log("onopen.");
+        };
+
+        myWebSocket.onclose = function(evt) {
+            console.log("onclose.");
+        };
+
+        myWebSocket.onerror = function(evt) {
+            console.log("Error!");
+        };
+    }
+
+    function sendMsg() {
+        var message = document.getElementById("myMessage").value;
+        myWebSocket.send(message);
+    }
+
+    function closeConn() {
+        myWebSocket.close();
+    }
+
+    </script>
+</head>
 <body>
-  <header role="banner">
-    <h1 id="title">LOGS</h1>
-  </header>
-  <div role="main">
-    <strong>Simplified way to display request information.</strong><br/>
-    Built for IT folks who have had enough of installing a webserver for the same purpose.
-    <h2>Usage</h2>
-    Open <i>logs-&lt;subdomain&gt;.dumprequest.com</i> to view logs.<br/>
-    Use <i>&lt;subdomain&gt;.dumprequest.com</i> for making a request.<br/><br/>
-    A generated random domain to test with:<br/>
-    To view logs: <a href="https://logs-{{ .Name }}.dumprequest.com" target="_blank">https://logs-{{ .Name }}.dumprequest.com</a><br/>
-    Send your request to: <a href="https://{{ .Name }}.dumprequest.com" target="_blank">https://{{ .Name }}.dumprequest.com</a><br/>
-    <h2>Motivation</h2>
-    Multiple times I needed to evaluate different proxy or firewall products which in conjunction with SSL inspection may modify request content.
-    I never found a good way of viewing the request which is arriving from the client other than setup a webserver and check logs.
-    Hence, I created this webpage to simplify my and hopefully other people's life who has been tasked with a similar activity.
-    <h2>Source code</h2>
-    Source code can be found at: <a href="https://github.com/sooslaca/dumprequest/" target="_blank">https://github.com/sooslaca/dumprequest/</a>.<br/>
-    Pull requests are welcome. Open and issue if you need to contact me.
-    <h2>Support the project</h2>
-    <a href="https://www.paypal.com/paypalme/sooslaca" target="_blank">https://www.paypal.com/paypalme/sooslaca</a>
-  </div>
-  <script>
-    function makeid(r){let n="",o="abcdefghijklmnopqrstuvwxyz0123456789",t=o.length,e=0;for(;e<r;)n+=o.charAt(Math.floor(Math.random()*t)),e+=1;return n}
-  </script>
+
+    <form>
+        connection to: <input type="text" id="endpoint" name="endpoint" value="wss://{{ .ServerName }}/ws"  style="width: 200px" ><br>
+    </form>
+
+    <input type="button" onclick="connectToWS()" value="connect to WebSocket endpoint" /><br><br>
+
+    <form>
+        message: <input type="text" id="myMessage" name="myMessage" value="hi there!"><br>
+    </form>
+
+    <input type="button" onclick="sendMsg()" value="Send message" />
+
+    <input type="button" onclick="closeConn()" value="Close connection" />
+
+
 </body>
+</html>

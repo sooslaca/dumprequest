@@ -10,7 +10,9 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"sort"
 	"strings"
+	"time"
 
 	"github.com/docker/docker/pkg/namesgenerator"
 	"github.com/sooslaca/dumprequest/cmd/server/common"
@@ -85,7 +87,7 @@ func serveMainPage(w http.ResponseWriter, r *http.Request) {
 	staticServerWeb.ServeHTTP(w, r)
 }
 
-func serveLogsPage(w http.ResponseWriter, r *http.Request) {
+func serveLogsPage(w http.ResponseWriter, r *http.Request, serverName string) {
 	//make sure the url path starts with /
 	upath := r.URL.Path
 	if !strings.HasPrefix(upath, "/") {
@@ -97,7 +99,6 @@ func serveLogsPage(w http.ResponseWriter, r *http.Request) {
 	if upath != "/" {
 		f, err := webLogsContent.Open("web-logs" + upath)
 		if err != nil {
-			fmt.Printf("%v", err)
 			if os.IsNotExist(err) {
 				http.Error(w, "404 - not found ¯\\_(ツ)_/¯", http.StatusNotFound)
 				return
@@ -110,12 +111,19 @@ func serveLogsPage(w http.ResponseWriter, r *http.Request) {
 
 	if upath == "/" || upath == "/index.html" {
 		logsTemplate.Execute(w, struct {
-			Name string
-		}{Name: strings.Replace(namesgenerator.GetRandomName(0), "_", "-", -1)})
+			ServerName string
+		}{ServerName: serverName})
 		return
 	}
 
 	staticServerLogs.ServeHTTP(w, r)
+}
+
+func htmlclient(ua string) bool {
+	if strings.Contains(ua, "iPhone") {
+		return true
+	}
+	return false
 }
 
 func serveHtml(w http.ResponseWriter, r *http.Request) {
@@ -128,26 +136,177 @@ func serveHtml(w http.ResponseWriter, r *http.Request) {
 
 	serverName := r.Host
 	if serverName == "" {
-		serverName = helloInfo.ServerName
+		if helloInfo == nil {
+			serverName = "!NA!"
+		} else {
+			serverName = helloInfo.ServerName
+		}
 	}
 
 	if common.SliceContains(indexDomains, serverName) {
 		serveMainPage(w, r)
 		return
 	}
-	if strings.HasPrefix(serverName, "logs-") {
-		serveLogsPage(w, r)
+	if strings.HasPrefix(serverName, "logs-") || strings.HasPrefix(serverName, "logs.") {
+		serveLogsPage(w, r, serverName)
 		return
 	}
 
-	if r.URL.Path != "/" {
-		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
-		return
-	}
+	/* 	if r.URL.Path != "/" {
+	   		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+	   		return
+	   	}
+	*/
 
-	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	if htmlclient(r.UserAgent()) {
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	} else {
+		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	}
 	w.Header().Set("X-Content-Type-Options", "nosniff")
 	w.WriteHeader(http.StatusOK)
+
+	var output []string
+	output = append(output, fmt.Sprintf("Server: %s:%d", r.Host, conn.LocalAddr().(*net.TCPAddr).Port))
+	output = append(output, fmt.Sprintf("Remote: %s  [%s GMT]", r.RemoteAddr, time.Now().Format("2006-01-02 15:04:05.000")))
+	output = append(output, fmt.Sprintf("%s %s [%s]", r.Method, r.URL, r.Proto))
+	output = append(output, "─")
+
+	output = append(output, "--~~~=:> HEADERS <:=~~~--")
+	headerkeys := make([]string, 0, len(r.Header))
+	for k := range r.Header {
+		headerkeys = append(headerkeys, k)
+	}
+	sort.Strings(headerkeys)
+	for _, name := range headerkeys {
+		for _, value := range r.Header[name] {
+			if strings.ToLower(name) == "cookie" {
+				continue
+			}
+			output = append(output, fmt.Sprintf("%s: %s", name, value))
+		}
+	}
+	output = append(output, "─")
+	output = append(output, "--~~~=:> COOKIES <:=~~~--")
+	for _, cookie := range r.Cookies() {
+		output = append(output, fmt.Sprintf("%s: %s", cookie.Name, cookie.Value))
+	}
+
+	if isTLSConn {
+		output = append(output, "─")
+		output = append(output, "--~~~=:> TLS info <:=~~~--")
+		if helloInfo != nil {
+			if helloInfo.ServerName == "" {
+				output = append(output, "SNI NOT SET")
+			} else {
+				output = append(output, fmt.Sprintf("SNI: %s", helloInfo.ServerName))
+			}
+		} else {
+			output = append(output, "SNI: UNKNOWN")
+		}
+		switch tlsConn.ConnectionState().Version {
+		case tls.VersionTLS10:
+			output = append(output, "Negotiated TLS version: 1.0")
+		case tls.VersionTLS11:
+			output = append(output, "Negotiated TLS version: 1.1")
+		case tls.VersionTLS12:
+			output = append(output, "Negotiated TLS version: 1.2")
+		case tls.VersionTLS13:
+			output = append(output, "Negotiated TLS version: 1.3")
+		default:
+			output = append(output, "Negotiated TLS version: UNKNOWN")
+		}
+		if v, exists := common.CipherSuiteMap[tlsConn.ConnectionState().CipherSuite]; exists {
+			output = append(output, fmt.Sprintf("Negotiated cipher: %s", v))
+		} else {
+			output = append(output, fmt.Sprintf("Negotiated cipher: UNKNOWN (0x%x)", tlsConn.ConnectionState().CipherSuite))
+		}
+
+		if helloInfo != nil {
+			if len(helloInfo.SupportedVersions) > 0 {
+				output = append(output, "Client supported TLS versions:")
+				for _, version := range helloInfo.SupportedVersions {
+					switch version {
+					//case tls.VersionSSL30:
+					//	output = append(output, "SSL3.0")
+					case tls.VersionTLS10:
+						output = append(output, "  1.0")
+					case tls.VersionTLS11:
+						output = append(output, "  1.1")
+					case tls.VersionTLS12:
+						output = append(output, "  1.2")
+					case tls.VersionTLS13:
+						output = append(output, "  1.3")
+					default:
+						output = append(output, fmt.Sprintf("  Unknown (0x%x)", version))
+					}
+				}
+			}
+			if len(helloInfo.CipherSuites) > 0 {
+				output = append(output, "Client supported ciphers:")
+				for _, suite := range helloInfo.CipherSuites {
+					if v, exists := common.CipherSuiteMap[suite]; exists {
+						output = append(output, fmt.Sprintf("  %s", v))
+					} else {
+						output = append(output, fmt.Sprintf("  Unknown (0x%x)", suite))
+					}
+				}
+			}
+		}
+	}
+
+	// write back to client
+	longest := 0
+	for _, v := range output {
+		if len(v) >= longest {
+			longest = len(v)
+		}
+	}
+
+	output = append(output, "─")
+	s := "Support this project"
+	output = append(output, fmt.Sprintf("%[1]*s", -longest, fmt.Sprintf("%[1]*s", (longest+len(s))/2, s)))
+	s = "https://paypal.me/sooslaca"
+	output = append(output, fmt.Sprintf("%[1]*s", -longest, fmt.Sprintf("%[1]*s", (longest+len(s))/2, s)))
+
+	if htmlclient(r.UserAgent()) {
+		fmt.Fprint(w, "<pre>")
+	}
+	fmt.Fprint(w, "┌─")
+	fmt.Fprint(w, strings.Repeat("─", longest))
+	fmt.Fprint(w, "─┐\n")
+
+	for _, v := range output {
+		if strings.HasPrefix(v, "─") {
+			fmt.Fprint(w, "├─")
+		} else {
+			fmt.Fprint(w, "│ ")
+		}
+		fmt.Fprint(w, v)
+		for i := len([]rune(v)); i < longest; i++ {
+			if strings.HasPrefix(v, "─") {
+				fmt.Fprint(w, "─")
+			} else {
+				fmt.Fprint(w, " ")
+			}
+		}
+		if strings.HasSuffix(v, "─") {
+			fmt.Fprint(w, "─┤")
+		} else {
+			fmt.Fprint(w, " │")
+		}
+		fmt.Fprint(w, "\n")
+	}
+
+	fmt.Fprint(w, "└─")
+	fmt.Fprint(w, strings.Repeat("─", longest))
+	fmt.Fprint(w, "─┘")
+	if htmlclient(r.UserAgent()) {
+		fmt.Fprint(w, "</pre>")
+	}
+	fmt.Fprint(w, "\n")
+
+	return
 
 	if isTLSConn {
 		if helloInfo != nil {
@@ -212,10 +371,4 @@ func serveHtml(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprintln(w, "")
 		}
 	}
-
-	fmt.Fprintf(w, "Remote: %s\n", r.RemoteAddr)
-	fmt.Fprintf(w, "Host: %s\n", r.Host)
-	fmt.Fprintf(w, "User-Agent: %s\n", r.UserAgent())
-	fmt.Fprintf(w, "Proto: %s\n", r.Proto)
-	fmt.Fprintf(w, "Server port: %d\n", conn.LocalAddr().(*net.TCPAddr).Port)
 }

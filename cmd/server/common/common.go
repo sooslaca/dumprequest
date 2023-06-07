@@ -83,3 +83,19 @@ func SetupLogger() *log.Logger {
 	logger.SetFormatter(&formatter)
 	return logger
 }
+
+func longestLine(input string) (longest string) {
+	lines := strings.Split(input, "\n")
+
+	size := 0
+
+	for _, v := range lines {
+		//fmt.Println(k,v, "Size: ", len(v))
+
+		if len(v) >= size {
+			longest = v
+			size = len(v)
+		}
+	}
+	return
+}
