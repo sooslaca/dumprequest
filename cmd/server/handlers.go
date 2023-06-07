@@ -120,10 +120,7 @@ func serveLogsPage(w http.ResponseWriter, r *http.Request, serverName string) {
 }
 
 func htmlclient(ua string) bool {
-	if strings.Contains(ua, "iPhone") {
-		return true
-	}
-	return false
+	return strings.Contains(ua, "iPhone")
 }
 
 func serveHtml(w http.ResponseWriter, r *http.Request) {
@@ -305,70 +302,4 @@ func serveHtml(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, "</pre>")
 	}
 	fmt.Fprint(w, "\n")
-
-	return
-
-	if isTLSConn {
-		if helloInfo != nil {
-			if len(helloInfo.SupportedVersions) > 0 {
-				fmt.Fprintf(w, "Client supported TLS versions:\n")
-				for _, version := range helloInfo.SupportedVersions {
-					switch version {
-					//case tls.VersionSSL30:
-					//	fmt.Fprintf(w, "SSL3.0")
-					case tls.VersionTLS10:
-						fmt.Fprintf(w, "1.0")
-					case tls.VersionTLS11:
-						fmt.Fprintf(w, "1.1")
-					case tls.VersionTLS12:
-						fmt.Fprintf(w, "1.2")
-					case tls.VersionTLS13:
-						fmt.Fprintf(w, "1.3")
-					default:
-						fmt.Fprintf(w, "Unknown (0x%x)", version)
-					}
-					fmt.Fprintln(w, "")
-				}
-				fmt.Fprintln(w, "")
-			}
-			if len(helloInfo.CipherSuites) > 0 {
-				fmt.Fprintf(w, "Client supported ciphers:\n")
-				for _, suite := range helloInfo.CipherSuites {
-					//fmt.Fprintf(w, "  %s \n", tls.CipherSuiteName(suite))
-					if v, exists := common.CipherSuiteMap[suite]; exists {
-						fmt.Fprintf(w, "  %s \n", v)
-					} else {
-						fmt.Fprintf(w, "  Unknown (0x%x) \n", suite)
-					}
-				}
-				fmt.Fprintln(w, "")
-			}
-
-			state := tlsConn.ConnectionState()
-			fmt.Fprintf(w, "Negotiated TLS version: ")
-			switch state.Version {
-			case tls.VersionTLS10:
-				fmt.Fprintf(w, "1.0")
-			case tls.VersionTLS11:
-				fmt.Fprintf(w, "1.1")
-			case tls.VersionTLS12:
-				fmt.Fprintf(w, "1.2")
-			case tls.VersionTLS13:
-				fmt.Fprintf(w, "1.3")
-			default:
-				fmt.Fprintf(w, "Unknown")
-			}
-			fmt.Fprintln(w, "")
-
-			fmt.Fprintf(w, "Negotiated cipher: ")
-			//fmt.Fprintf(w, "%s\n", tls.CipherSuiteName(state.CipherSuite))
-			if v, exists := common.CipherSuiteMap[state.CipherSuite]; exists {
-				fmt.Fprintf(w, "%s\n", v)
-			} else {
-				fmt.Fprintf(w, "Unknown (0x%x)\n", state.CipherSuite)
-			}
-			fmt.Fprintf(w, "SNI: %s\n", helloInfo.ServerName)
-			fmt.Fprintln(w, "")
-		}
-	}
 }
