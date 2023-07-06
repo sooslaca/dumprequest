@@ -189,7 +189,7 @@ func StartServer(logger *log.Logger, router *http.ServeMux) {
 }
 
 func connStateHook(c net.Conn, state http.ConnState) {
-	if state == http.StateActive {
+	/*if state == http.StateActive {
 		if cc, ok := c.(*tls.Conn); ok {
 			state := cc.ConnectionState()
 			log.Println("negotiated cipher: ", tls.CipherSuiteName(state.CipherSuite))
@@ -208,7 +208,7 @@ func connStateHook(c net.Conn, state http.ConnState) {
 				log.Println("negotiated to Unknown TLS version")
 			}
 		}
-	}
+	}*/
 	if state == http.StateClosed {
 		delCHI(c.RemoteAddr().String())
 	}
