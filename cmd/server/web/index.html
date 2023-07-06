@@ -47,30 +47,31 @@
     div[role=main] h2 { font-size: 1.5em;line-height:1em;border-bottom:1px solid silver;padding-bottom:5px }
     div[role=main] h3 { font-size: 1.2em }
     a, a:visited, a:hover, a:active { color: #00f; }
+    p { padding: 0px; margin: 0px; }
     .j { text-align: justify; }
 </style>
 <body>
-  <header role="banner">
+  <header>
     <h1 id="title">Dump&#8203;Request</h1>
   </header>
   <div role="main">
-    <strong>Simplified way to display request information.</strong><br/>
-    Built for IT folks who have had enough of installing a webserver for the same purpose.
+    <strong>Simplified way to display request information.</strong><br>
+    <p>Built for IT folks who have had enough of installing a webserver for the same purpose.</p>
     <h2>Usage</h2>
-    Open <i>logs-&lt;subdomain&gt;.dumprequest.com</i> to view logs.<br/>
-    Use <i>&lt;subdomain&gt;.dumprequest.com</i> for making a request.<br/><br/>
-    A generated random domain to test with:<br/>
-    To view logs: <a href="https://logs-{{ .Name }}.dumprequest.com" target="_blank">https://logs-{{ .Name }}.dumprequest.com</a><br/>
-    Send your request to: <a href="https://{{ .Name }}.dumprequest.com" target="_blank">https://{{ .Name }}.dumprequest.com</a><br/>
+    <p>Open <i>logs-&lt;subdomain&gt;.dumprequest.com</i> to view logs.<br>
+    Use <i>&lt;subdomain&gt;.dumprequest.com</i> for making a request.<br><br>
+    A generated random domain to test with:<br>
+    To view logs: <a href="https://logs-{{ .Name }}.dumprequest.com" target="_blank">https://logs-{{ .Name }}.dumprequest.com</a><br>
+    Send your request to: <a href="https://{{ .Name }}.dumprequest.com" target="_blank">https://{{ .Name }}.dumprequest.com</a><br></p>
     <h2>Motivation</h2>
     <p class="j">Multiple times I needed to evaluate different proxy or firewall products which in conjunction with SSL inspection may modify request content.
     I never found a good way of viewing the request which is arriving from the client other than setup a webserver and check logs.
     Hence, I created this webpage to simplify my and hopefully other people's life who has been tasked with a similar activity.</p>
     <h2>Source code</h2>
-    Source code can be found at: <a href="https://github.com/sooslaca/dumprequest/" target="_blank">https://github.com/sooslaca/dumprequest/</a>.<br/>
-    Pull requests are welcome. Open an issue if you need to contact me.
+    <p>Source code can be found at: <a href="https://github.com/sooslaca/dumprequest/" target="_blank">https://github.com/sooslaca/dumprequest/</a>.<br>
+    Pull requests are welcome. Open an issue if you need to contact me.</p>
     <h2>Support this project</h2>
-    <a href="https://paypal.me/sooslaca" target="_blank">https://paypal.me/sooslaca</a>
+    <p><a href="https://paypal.me/sooslaca" target="_blank">https://paypal.me/sooslaca</a></p>
   </div>
   <script>
     function makeid(r){let n="",o="abcdefghijklmnopqrstuvwxyz0123456789",t=o.length,e=0;for(;e<r;)n+=o.charAt(Math.floor(Math.random()*t)),e+=1;return n}
