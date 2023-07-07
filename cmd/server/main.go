@@ -3,17 +3,21 @@ package main
 import (
 	"net/http"
 
+	"github.com/sirupsen/logrus"
 	"github.com/sooslaca/dumprequest/cmd/server/common"
 )
+
+var logger *logrus.Logger
 
 func main() {
 	common.ChangeToSelfDir()
 
-	logger := common.SetupLogger()
+	logger = common.SetupLogger()
 
 	// handlers
 	router := http.NewServeMux()
 	router.HandleFunc("/", serveHtml)
+	router.HandleFunc("/ws", serveWS)
 	//router.Handle("/metrics", promhttp.Handler())
 
 	StartServer(logger, router)

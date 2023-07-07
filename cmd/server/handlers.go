@@ -6,15 +6,20 @@ import (
 	"fmt"
 	"html/template"
 	"io/fs"
+	"math/rand"
 	"net"
 	"net/http"
 	"os"
 	"path"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/docker/docker/pkg/namesgenerator"
+	"github.com/gobwas/ws"
+	"github.com/gobwas/ws/wsutil"
+	log "github.com/sirupsen/logrus"
 	"github.com/sooslaca/dumprequest/cmd/server/common"
 )
 
@@ -121,6 +126,51 @@ func serveLogsPage(w http.ResponseWriter, r *http.Request, serverName string) {
 
 func htmlclient(ua string) bool {
 	return strings.Contains(ua, "iPhone")
+}
+
+func serveWS(w http.ResponseWriter, r *http.Request) {
+	if r.ProtoMajor == 2 {
+		http.Error(w, "500 - Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	requestID, ok := r.Context().Value(requestIDKey).(string)
+	if !ok {
+		requestID = "unknown"
+	}
+	mylogger := logger.WithFields(log.Fields{
+		"websock_id": requestID,
+	})
+
+	conn, _, _, err := ws.UpgradeHTTP(r, w)
+	if err != nil {
+		mylogger.Printf("Error starting server - %s\n", err.Error())
+		http.Error(w, "400 - Bad Request ¯\\_(ツ)_/¯", http.StatusBadRequest)
+		return
+	}
+
+	go func() {
+		defer conn.Close()
+		mylogger.Println("Client connected")
+		for {
+			msg, op, err := wsutil.ReadClientData(conn)
+			if err != nil {
+				mylogger.Println("Error receiving data: " + err.Error())
+				mylogger.Println("Client disconnected")
+				return
+			}
+			mylogger.Println("Client message received with random number: " + string(msg))
+			randomNumber := strconv.Itoa(rand.Intn(100))
+			err = wsutil.WriteServerMessage(conn, op, []byte(randomNumber))
+			if err != nil {
+				mylogger.Println("Error sending data: " + err.Error())
+				mylogger.Println("Client disconnected")
+				return
+			}
+			mylogger.Println("Server message send with random number " + randomNumber)
+		}
+	}()
+
 }
 
 func serveHtml(w http.ResponseWriter, r *http.Request) {

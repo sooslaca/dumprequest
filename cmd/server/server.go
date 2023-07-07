@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"context"
 	"crypto/tls"
 	"fmt"
@@ -43,6 +44,15 @@ type StatusRecorder struct {
 func (r *StatusRecorder) WriteHeader(status int) {
 	r.Status = status
 	r.ResponseWriter.WriteHeader(status)
+}
+
+func (w *StatusRecorder) Hijack() (net.Conn, *bufio.ReadWriter, error) {
+	hj, ok := w.ResponseWriter.(http.Hijacker)
+	if !ok {
+		return nil, nil, fmt.Errorf("the hijacker interface is not supported")
+	}
+
+	return hj.Hijack()
 }
 
 type Server struct {
