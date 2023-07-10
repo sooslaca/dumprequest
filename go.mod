@@ -4,15 +4,12 @@ go 1.20
 
 require (
 	github.com/docker/docker v24.0.2+incompatible
-	github.com/gobwas/ws v1.2.1
 	github.com/sirupsen/logrus v1.9.3
 	github.com/zishang520/socket.io v1.2.0
 )
 
 require (
 	github.com/andybalholm/brotli v1.0.4 // indirect
-	github.com/gobwas/httphead v0.1.0 // indirect
-	github.com/gobwas/pool v0.2.1 // indirect
 	github.com/gookit/color v1.5.0 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
