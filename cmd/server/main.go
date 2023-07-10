@@ -1,23 +1,97 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/sirupsen/logrus"
 	"github.com/sooslaca/dumprequest/cmd/server/common"
+	"github.com/zishang520/socket.io/socket"
 )
 
 var logger *logrus.Logger
+
+/*var allowOriginFunc = func(r *http.Request) bool {
+	return true
+}*/
 
 func main() {
 	common.ChangeToSelfDir()
 
 	logger = common.SetupLogger()
 
+	/*server := socketio.NewServer(&engineio.Options{
+		Transports: []transport.Transport{
+			&polling.Transport{
+				CheckOrigin: allowOriginFunc,
+			},
+			&websocket.Transport{
+				CheckOrigin: allowOriginFunc,
+			},
+		},
+	})
+
+	server.OnConnect("/", func(s socketio.Conn) error {
+		s.SetContext("")
+		fmt.Printf("connected: %s, NS: %s\n", s.ID(), s.Namespace())
+		return nil
+	})
+
+	server.OnEvent("/", "notice", func(s socketio.Conn, msg string) {
+		fmt.Println("onevent notice")
+		fmt.Println("notice:", msg)
+		s.Emit("reply", "have "+msg)
+	})
+
+	server.OnEvent("/chat", "msg", func(s socketio.Conn, msg string) string {
+		fmt.Println("onevent msg")
+		s.SetContext(msg)
+		return "recv " + msg
+	})
+
+	server.OnEvent("/", "bye", func(s socketio.Conn) string {
+		fmt.Println("onevent bye")
+		last := s.Context().(string)
+		s.Emit("bye", last)
+		s.Close()
+		return last
+	})
+
+	server.OnError("/", func(s socketio.Conn, e error) {
+		fmt.Println("meet error:", e)
+	})
+
+	server.OnDisconnect("/", func(s socketio.Conn, reason string) {
+		fmt.Println("closed", reason)
+	})
+
+	go func() {
+		if err := server.Serve(); err != nil {
+			logger.Fatalf("socketio listen error: %s\n", err)
+		}
+	}()
+	defer server.Close()*/
+
+	io := socket.NewServer(nil, nil)
+	io.On("connection", func(clients ...any) {
+		client := clients[0].(*socket.Socket)
+		fmt.Printf("websocket connected to %s from %s\n", client.Client().Request().Request().Host, client.Client().Request().Request().RemoteAddr)
+		client.On("event", func(datas ...any) {
+			fmt.Println("datas", datas)
+		})
+		client.On("ping", func(datas ...any) {
+			client.Emit("pong - " + time.Now().Format("2006-01-02T15:04:05.999999-07:00"))
+		})
+		client.On("disconnect", func(...any) {
+		})
+	})
+
 	// handlers
 	router := http.NewServeMux()
 	router.HandleFunc("/", serveHtml)
-	router.HandleFunc("/ws", serveWS)
+	router.Handle("/ws/", io.ServeHandler(nil))
+	//router.HandleFunc("/ws/", serveWS)
 	//router.Handle("/metrics", promhttp.Handler())
 
 	StartServer(logger, router)

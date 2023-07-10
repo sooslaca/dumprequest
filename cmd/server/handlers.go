@@ -116,8 +116,8 @@ func serveLogsPage(w http.ResponseWriter, r *http.Request, serverName string) {
 
 	if upath == "/" || upath == "/index.html" {
 		logsTemplate.Execute(w, struct {
-			ServerName string
-		}{ServerName: serverName})
+			Title string
+		}{Title: serverName})
 		return
 	}
 
@@ -153,21 +153,22 @@ func serveWS(w http.ResponseWriter, r *http.Request) {
 		defer conn.Close()
 		mylogger.Println("Client connected")
 		for {
-			msg, op, err := wsutil.ReadClientData(conn)
+			/*msg, op, err := wsutil.ReadClientData(conn)
 			if err != nil {
 				mylogger.Println("Error receiving data: " + err.Error())
 				mylogger.Println("Client disconnected")
 				return
 			}
-			mylogger.Println("Client message received with random number: " + string(msg))
+			mylogger.Println("Client message received with random number: " + string(msg))*/
 			randomNumber := strconv.Itoa(rand.Intn(100))
-			err = wsutil.WriteServerMessage(conn, op, []byte(randomNumber))
+			err = wsutil.WriteServerMessage(conn, ws.OpText, []byte(randomNumber))
 			if err != nil {
 				mylogger.Println("Error sending data: " + err.Error())
 				mylogger.Println("Client disconnected")
 				return
 			}
 			mylogger.Println("Server message send with random number " + randomNumber)
+			time.Sleep(3 * time.Second)
 		}
 	}()
 

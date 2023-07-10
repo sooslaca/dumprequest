@@ -1,68 +1,53 @@
+<!DOCTYPE html>
 <html>
+
 <head>
-    <script type="text/javascript">
-
-    var myWebSocket;
-
-
-    function connectToWS() {
-        var endpoint = document.getElementById("endpoint").value;
-        if (myWebSocket !== undefined) {
-            myWebSocket.close()
-        }
-
-        myWebSocket = new WebSocket(endpoint);
-
-        myWebSocket.onmessage = function(event) {
-            var leng;
-            if (event.data.size === undefined) {
-                leng = event.data.length
-            } else {
-                leng = event.data.size
-            }
-            console.log("onmessage. size: " + leng + ", content: " + event.data);
-        }
-
-        myWebSocket.onopen = function(evt) {
-            console.log("onopen.");
-        };
-
-        myWebSocket.onclose = function(evt) {
-            console.log("onclose.");
-        };
-
-        myWebSocket.onerror = function(evt) {
-            console.log("Error!");
-        };
-    }
-
-    function sendMsg() {
-        var message = document.getElementById("myMessage").value;
-        myWebSocket.send(message);
-    }
-
-    function closeConn() {
-        myWebSocket.close();
-    }
-
-    </script>
+    <title>{{ .Title }}</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="/css/frontail_default.css">
+    <link rel="icon" href="/favicon.ico">
 </head>
+
 <body>
+    <nav class="topbar navbar navbar-inverse navbar-fixed-top" role="navigation">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-sm-10">
+                    <span class="navbar-brand text-overflow" title="{{ .Title }}">{{ .Title }}</span>
+                </div>
+                <div class="col-sm-2">
+                    <form class="navbar-form-custom" role="search" onkeypress="return event.keyCode != 13;">
+                        <input type="text" class="form-control query" placeholder="Filter" tabindex="1">
+                    </form>
+                </div>
+            </div>
+        </div>
+    </nav>
 
-    <form>
-        connection to: <input type="text" id="endpoint" name="endpoint" value="wss://{{ .ServerName }}/ws"  style="width: 200px" ><br>
-    </form>
-
-    <input type="button" onclick="connectToWS()" value="connect to WebSocket endpoint" /><br><br>
-
-    <form>
-        message: <input type="text" id="myMessage" name="myMessage" value="hi there!"><br>
-    </form>
-
-    <input type="button" onclick="sendMsg()" value="Send message" />
-
-    <input type="button" onclick="closeConn()" value="Close connection" />
+    <div class="container-fluid no-horiz-padding">
+        <pre class="log"></pre>
+    </div>
 
 
+    <script src="js/socket.io-4.7.1.min.js"></script>
+    <script src="js/tinycon-0.6.5.min.js"></script>
+    <script src="js/ansi_up.js"></script>
+    <script src="js/frontail.js"></script>
+    <script type="text/javascript">
+        var socket = new io.connect('{{ .Title }}', {
+            path: '/ws',
+            transports: ['websocket']
+        });
+
+        window.load = App.init({
+            socket: socket,
+            container: document.getElementsByClassName('log')[0],
+            filterInput: document.getElementsByClassName('query')[0],
+            topbar: document.getElementsByClassName('topbar')[0],
+            body: document.getElementsByTagName('body')[0]
+        });
+    </script>
 </body>
+
 </html>
