@@ -4,7 +4,7 @@
         {
             "label": "Build and upload",
             "type": "shell",
-            "command": "mkdir -p build && CGO_ENABLED=0 go build -o build/dumpserver ./cmd/server && scp build/dumpserver dstserver:~",
+            "command": "mkdir -p build && CGO_ENABLED=0 go build -trimpath -ldflags '-s -w' -o build/dumpserver ./cmd/server && scp build/dumpserver dstserver:~",
             "group": {
                 "kind": "build",
                 "isDefault": true
